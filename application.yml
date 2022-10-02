@@ -1,0 +1,10 @@
+task-monitor-cron:
+  #每5秒执行一次
+  cpu: "*/5 * * * * *"
+  disk: "*/5 * * * * *"
+  heartbeat:  "*/5 * * * * *"
+
+
+psmp:
+  host:
+  api:
