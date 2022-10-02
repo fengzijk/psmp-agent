@@ -16,7 +16,7 @@ func newWithSeconds() *cron.Cron {
 
 func InitTask(ip string) {
 
-	log.Println("[Cron] Starting...")
+	log.Println("[Cron] " + ip + "Starting...")
 
 	c := newWithSeconds()
 
@@ -25,7 +25,7 @@ func InitTask(ip string) {
 	// cpu监控
 	_, _ = c.AddFunc(cpuSpec, func() {
 		cpu.Monitor()
-		log.Println("[Cron] Run cpuMonitor...")
+		//log.Println("[Cron] Run cpuMonitor...")
 
 	})
 
