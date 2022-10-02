@@ -18,11 +18,11 @@ psmp:
     -
 
 
-## 告警间隔 在此期间值告警一次
+## 告警间隔秒 在此期间告警一次
 frequencySeconds: 7200
 
 cpu:
-  ## 过载告警阈值
+  ## 过载告警阈值 75 %
   overloadThreshold: 75
   ## 样本大小
   sampleSize: 30
