@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"psmp-agent/cpu"
+	"psmp-agent/heartbeat"
 )
 
 func newWithSeconds() *cron.Cron {
@@ -13,22 +14,27 @@ func newWithSeconds() *cron.Cron {
 	return cron.New(cron.WithParser(secondParser), cron.WithChain())
 }
 
-func InitTask() {
+func InitTask(ip string) {
 
 	log.Println("[Cron] Starting...")
 
 	c := newWithSeconds()
 
-	spec := viper.GetString("task-monitor-cron.cpu")
+	cpuSpec := viper.GetString("task-monitor-cron.cpu")
 
 	// cpu监控
-	_, _ = c.AddFunc(spec, func() {
+	_, _ = c.AddFunc(cpuSpec, func() {
 		cpu.Monitor()
 		log.Println("[Cron] Run cpuMonitor...")
 
 	})
 
-	//
+	// Agent 心跳
+	heartbeatSpec := viper.GetString("task-monitor-cron.heartbeat")
+	_, _ = c.AddFunc(heartbeatSpec, func() {
+		heartbeat.AgentHeartbeat(ip)
+		log.Println("[Cron] Run AgentHeartbeat...")
+	})
 
 	c.Start()
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
+	"psmp-agent/cpu"
+	"psmp-agent/heartbeat"
 	"psmp-agent/ip"
 	"psmp-agent/task"
 )
@@ -12,17 +14,13 @@ func main() {
 
 	// 初始化配置
 	initConfig()
-	// 初始化定时任务
-	task.InitTask()
-
-	//
-	externalIP, _ := ip.ExternalIP()
-	fmt.Println(externalIP)
 
 	select {}
 }
 
+// initConfig
 func initConfig() {
+
 	//第一步 设置配置文件目录
 	viper.SetConfigName("application")
 	viper.AddConfigPath("./")
@@ -36,4 +34,14 @@ func initConfig() {
 
 		log.Println(err)
 	}
+
+	// cpu配置
+	cpu.InitConfig()
+	// 心跳配置
+	heartbeat.InitConf()
+
+	externalIP, _ := ip.ExternalIP()
+	fmt.Println(externalIP)
+	// 初始化定时任务
+	task.InitTask(externalIP.String())
 }

@@ -15,7 +15,8 @@ func PostJson(url string, bodyJson string, authorization string) string {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(bodyJson)))
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return ""
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authorization))
@@ -23,7 +24,8 @@ func PostJson(url string, bodyJson string, authorization string) string {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return ""
 	}
 
 	all, err := io.ReadAll(resp.Body)
@@ -32,7 +34,8 @@ func PostJson(url string, bodyJson string, authorization string) string {
 
 	}(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return ""
 	}
 	return string(all)
 }
@@ -44,7 +47,8 @@ func GetJson(url string, authorization string) string {
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return ""
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authorization))
@@ -52,7 +56,8 @@ func GetJson(url string, authorization string) string {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return ""
 	}
 
 	all, err := io.ReadAll(resp.Body)
@@ -61,7 +66,9 @@ func GetJson(url string, authorization string) string {
 		_ = Body.Close()
 	}(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+
+		return ""
 	}
 	return string(all)
 }

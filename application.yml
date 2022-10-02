@@ -1,10 +1,30 @@
-task-monitor-cron:
-  #每5秒执行一次
-  cpu: "*/5 * * * * *"
-  disk: "*/5 * * * * *"
-  heartbeat:  "*/5 * * * * *"
+task-monitor-cron: #每5秒执行一次
+  # cpu 监控 十秒执行一次
+  cpu: "*/10 * * * * *"
+  # 磁盘 监控 每天凌晨两点
+  disk: "0 0 2 * * ?"
+  # Agent 心跳 一分钟一次
+  heartbeat: " 0/1 * * * ?"
 
 
+
+## 管理平台接口
 psmp:
-  host:
-  api:
+  url : http://127.0.0.1:8080
+  heartbeat-api: /open/agent/heartbeat/%s/%s
+  send-email-api: /email/save
+  app-check-url:
+    -
+    -
+
+
+## 告警间隔 在此期间值告警一次
+frequencySeconds: 7200
+
+cpu:
+  ## 过载告警阈值
+  overloadThreshold: 75
+  ## 样本大小
+  sampleSize: 30
+  ## 恢复正常的样本大小
+  normalSampleSize: 18
