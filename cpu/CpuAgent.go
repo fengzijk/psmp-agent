@@ -20,10 +20,11 @@ const (
 
 type SendEmailRequest struct {
 	// binding:"required"修饰的字段，若接收为空值，则报错，是必须字段
-	SystemName string   `form:"systemName" json:"systemName" `
-	EmailTo    []string `form:"emailTo" json:"emailTo"`
-	Subject    string   `form:"subject" json:"subject"`
-	Content    string   `form:"content" json:"content"`
+	FromName string `form:"fromName" json:"fromName"`
+	ToUser   string `form:"ToUser" json:"toUser" `
+	CcUser   string `form:"emailTo" json:"ccUser" `
+	Subject  string `form:"subject" json:"subject" `
+	Body     string `form:"content" json:"content" `
 }
 
 var EmailUrl string
@@ -98,10 +99,10 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 		if float32(overloadCount) >= (float32(listMax) * 0.8) {
 			// 发送告警邮件
 			log.Print("发送邮件------------------------")
-			var email = SendEmailRequest{EmailTo: nil, SystemName: "psmp-agent", Subject: "CPU过载告警", Content: ip + ":cpu 过载 大于80%"}
+			var email = SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu 过载 大于80%"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(EmailUrl, string(emailJson), "")
+			postJson := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
 			fmt.Println(postJson)
 			//
 
@@ -148,10 +149,10 @@ func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey 
 
 			log.Print("发送邮件------------------------")
 
-			var email = SendEmailRequest{EmailTo: nil, SystemName: "psmp-agent", Subject: "CPU过载告警", Content: ip + ":cpu恢复正常"}
+			var email = SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu恢复正常"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(EmailUrl, string(emailJson), "")
+			postJson := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
 			fmt.Println(postJson)
 			// 已恢复告警标记
 			preAlarmCache := util.CacheModel{Key: preAlarmKey, Value: "0", ExpireSeconds: 100000}
@@ -184,4 +185,8 @@ func InitConfig() {
 
 	normalSampleSize := viper.GetInt("cpu.normalSampleSize")
 	NormalSampleSize = normalSampleSize
+}
+
+func getEmailApi(t string) string {
+	return fmt.Sprintf(EmailUrl, t)
 }

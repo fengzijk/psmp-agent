@@ -12,7 +12,7 @@ task-monitor-cron: #每5秒执行一次
 psmp:
   url : http://127.0.0.1:8080
   heartbeat-api: /open/agent/heartbeat/%s/%s
-  send-email-api: /email/save
+  send-email-api: /email/%s/save
   app-check-url:
     -
     -
