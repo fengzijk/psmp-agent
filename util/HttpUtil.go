@@ -21,6 +21,7 @@ func PostJson(url string, bodyJson string, authorization string) string {
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authorization))
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("charset", "UTF-8")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

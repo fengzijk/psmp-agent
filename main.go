@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
-	"psmp-agent/cpu"
+	"psmp-agent/config"
 	"psmp-agent/heartbeat"
 	"psmp-agent/ip"
 	"psmp-agent/task"
+	"psmp-agent/util"
 )
 
 func main() {
 
 	// 初始化配置
 	initConfig()
+
+	fmt.Println(util.GetDiskPercent())
 
 	select {}
 }
@@ -36,7 +39,8 @@ func initConfig() {
 	}
 
 	// cpu配置
-	cpu.InitConfig()
+
+	config.InitConfig()
 	// 心跳配置
 	heartbeat.InitConf()
 

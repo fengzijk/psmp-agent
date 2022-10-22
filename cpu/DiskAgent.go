@@ -9,23 +9,23 @@ import (
 	"psmp-agent/util"
 )
 
-func Monitor() {
+func DiskMonitor() {
 
 	//样本list最大取样数量
-	listMax := config.CpuSampleSize
+	listMax := config.DiskSampleSize
 
 	var cacheCpuList []float64
 
 	externalIP, _ := ip.ExternalIP()
 
 	// 样本缓存key
-	sampleKey := config.MonitorServerCpuSample + externalIP.String()
+	sampleKey := config.MonitorServerDiskSample + externalIP.String()
 	// 告警间隔缓存key
-	alarmKey := config.MonitorServerCpuAlarmInterval + externalIP.String()
+	alarmKey := config.MonitorServerDiskAlarmInterval + externalIP.String()
 	// 是否上一次监控有告警缓存key
-	preAlarmKey := config.MonitorServerCpuAlarmPre + externalIP.String()
+	preAlarmKey := config.MonitorServerDiskAlarmPre + externalIP.String()
 
-	percent := util.GetCpuPercent()
+	percent := util.GetDiskPercent()
 
 	cache, b := util.GetCache(sampleKey)
 	if b {
@@ -42,15 +42,15 @@ func Monitor() {
 	//	cacheCpuList = cacheCpuList[(len(cacheCpuList) - 29):]
 	//}
 
-	//cpu过载告警
-	cpuOverloadAlarm(cacheCpuList, listMax, externalIP.String(), alarmKey, preAlarmKey, sampleKey)
+	//disk过载告警
+	diskOverloadAlarm(cacheCpuList, listMax, externalIP.String(), alarmKey, preAlarmKey, sampleKey)
 
-	// cpu恢复正常通知
-	cpuRecoveryNotification(cacheCpuList, externalIP.String(), preAlarmKey, sampleKey, listMax)
+	// disk恢复正常通知
+	diskRecoveryNotification(cacheCpuList, externalIP.String(), preAlarmKey, sampleKey, listMax)
 
 }
 
-func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlarmKey, sampleKey string) {
+func diskOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlarmKey, sampleKey string) {
 
 	_, alarmBool := util.GetCache(alarmKey)
 
@@ -61,7 +61,7 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 
 		// 计算过载次数，即CPU使用率高于xx%的次数
 		overloadCount := 0
-		overloadThreshold := float64(config.CpuOverloadThreshold)
+		overloadThreshold := float64(config.DiskOverloadThreshold)
 		for _, s := range cacheCpuList {
 			if s > overloadThreshold {
 				overloadCount++
@@ -71,15 +71,15 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 		if float32(overloadCount) >= (float32(listMax) * 0.8) {
 			// 发送告警邮件
 			log.Print("发送邮件------------------------")
-			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu 过载 大于80%"}
+			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":disk 过载 大于80%"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
+			postJson := util.PostJson(getEmailApi("disk"), string(emailJson), "")
 			fmt.Println(postJson)
 			//
 
 			// 告警缓存，frequency秒后失效，在此期间不会重复告警
-			alarmCache := util.CacheModel{Key: alarmKey, Value: "1", ExpireSeconds: config.CpuFrequencySeconds}
+			alarmCache := util.CacheModel{Key: alarmKey, Value: "1", ExpireSeconds: config.DiskFrequencySeconds}
 			util.SetCache(alarmCache)
 
 			// 已告警标记，给恢复正常通知使用
@@ -95,21 +95,21 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 	}
 
 }
-func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey string, listMax int) {
+func diskRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey string, listMax int) {
 
 	pr, preAlarmBool := util.GetCache(preAlarmKey)
 
 	// 如果上一次有告警，且已恢复，则发恢复通知
-	if len(cacheCpuList) >= config.CpuNormalSampleSize && preAlarmBool && "1" == pr {
+	if len(cacheCpuList) >= config.DiskNormalSampleSize && preAlarmBool && "1" == pr {
 		// 清理旧数据，只保留最新30
 		cacheCpuList = cacheCpuList[(len(cacheCpuList) - (listMax - 1)):]
 		// 取最新18条（3分钟内）样本计算
 		var ls []float64
-		ls = cacheCpuList[(len(cacheCpuList) - config.CpuNormalSampleSize):]
+		ls = cacheCpuList[(len(cacheCpuList) - config.DiskNormalSampleSize):]
 
 		// 计算过载次数，即CPU使用率高于75%的次数
 		overloadCount := 0
-		overloadThreshold := float64(config.CpuOverloadThreshold)
+		overloadThreshold := float64(config.DiskOverloadThreshold)
 		for _, s := range ls {
 			if s > overloadThreshold {
 				overloadCount++
@@ -121,10 +121,10 @@ func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey 
 
 			log.Print("发送邮件------------------------")
 
-			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu恢复正常"}
+			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":磁盘恢复正常"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
+			postJson := util.PostJson(getEmailApi("disk"), string(emailJson), "")
 			fmt.Println(postJson)
 			// 已恢复告警标记
 			preAlarmCache := util.CacheModel{Key: preAlarmKey, Value: "0", ExpireSeconds: 100000}
@@ -138,8 +138,4 @@ func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey 
 	sampleCache := util.CacheModel{Key: sampleKey, Value: string(doctorJson), ExpireSeconds: 100000}
 	util.SetCache(sampleCache)
 
-}
-
-func getEmailApi(t string) string {
-	return fmt.Sprintf(config.EmailUrl, t)
 }
