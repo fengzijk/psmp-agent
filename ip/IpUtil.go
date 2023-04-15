@@ -108,12 +108,7 @@ func GetIpAddr2() string {
 	return ip
 }
 
-func SendIPChange() {
-
-	cacheKey := ipCacheShortKey
-
-	// 缓存中查
-	lastIp, _ := util.GetCache(cacheKey)
+func SendIPAlarm() {
 
 	remoteUrlIP := GetRemoteUrlIP()
 
@@ -145,31 +140,6 @@ func SendIPChange() {
 	dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk.url"), viper.GetString("ding-talk.password"),
 		viper.GetString("ding-talk.dingSign"), viper.GetString("ding-talk.dingToken"))
 	util.PostJson(dingTalkUrl, string(messageJson), "")
-
-	if lastIp != remoteUrlIP {
-		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 100000}
-		util.SetCache(ipCache)
-		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
-
-		po := Gitea{
-			Text: struct {
-				//Subject string `json:"subject"`
-				Content string `json:"content"`
-			}{Content: msg},
-			At: struct {
-				AtMobiles interface{} `json:"atMobiles"`
-				IsAtAll   bool        `json:"isAtAll"`
-			}{AtMobiles: viper.GetString("ding-talk.atMobiles")},
-		}
-
-		po.Msgtype = "text"
-
-		messageJson, _ := json.Marshal(po)
-		dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk.url"), viper.GetString("ding-talk.password"),
-			viper.GetString("ding-talk.dingSign"), viper.GetString("ding-talk.dingToken"))
-		util.PostJson(dingTalkUrl, string(messageJson), "")
-
-	}
 
 }
 
@@ -238,4 +208,38 @@ func GetDdnsIP() (string, error) {
 
 	return "", errors.New("获取域名dns地址失败")
 
+}
+
+func SendIPChange() {
+
+	cacheKey := ipCacheShortKey
+
+	// 缓存中查
+	lastIp, _ := util.GetCache(cacheKey)
+
+	remoteUrlIP := GetRemoteUrlIP()
+	if lastIp != remoteUrlIP {
+		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 100000}
+		util.SetCache(ipCache)
+		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
+
+		po := Gitea{
+			Text: struct {
+				//Subject string `json:"subject"`
+				Content string `json:"content"`
+			}{Content: msg},
+			At: struct {
+				AtMobiles interface{} `json:"atMobiles"`
+				IsAtAll   bool        `json:"isAtAll"`
+			}{AtMobiles: viper.GetString("ding-talk.atMobiles")},
+		}
+
+		po.Msgtype = "text"
+
+		messageJson, _ := json.Marshal(po)
+		dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk.url"), viper.GetString("ding-talk.password"),
+			viper.GetString("ding-talk.dingSign"), viper.GetString("ding-talk.dingToken"))
+		util.PostJson(dingTalkUrl, string(messageJson), "")
+
+	}
 }

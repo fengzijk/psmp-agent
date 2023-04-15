@@ -6,9 +6,11 @@ task-monitor-cron: #每5秒执行一次
   # Agent 心跳 一分钟一次
   heartbeat: " 0/1 * * * ?"
 
-  #
+  #ip变化
   ipChange: "*/10 * * * * *"
 
+  # ip 告警
+  ipAlarm: "*/40 * * * * *"
 
 task-monitor-flag: #每5秒执行一次
   # cpu 监控 十秒执行一次
@@ -19,6 +21,8 @@ task-monitor-flag: #每5秒执行一次
   heartbeatFlag: false
   # ip变化
   ipChangeFlag: true
+
+  ipAlarmFlag: true
 
 
 
