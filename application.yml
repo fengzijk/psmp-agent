@@ -6,8 +6,8 @@ task-monitor-cron: #每5秒执行一次
   # Agent 心跳 一分钟一次
   heartbeat: " 0/1 * * * ?"
 
-  # ip变化
-  ipChange: " 0/10 * * * ?"
+  #
+  ipChange: "*/10 * * * * *"
 
 
 task-monitor-flag: #每5秒执行一次
@@ -52,3 +52,4 @@ ding-talk:
  password:
  dingSign:
  dingToken:
+ atMobiles:

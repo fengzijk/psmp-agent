@@ -32,15 +32,15 @@ func InitTask(ip string) {
 
 	}
 	// Agent 心跳
-	if viper.GetBool("task-monitor-flag.diskFlag") {
-		heartbeatSpec := viper.GetString("task-monitor-cron.heartbeatFlag")
+	if viper.GetBool("task-monitor-flag.heartbeatFlag") {
+		heartbeatSpec := viper.GetString("task-monitor-cron.heartbeat")
 		_, _ = c.AddFunc(heartbeatSpec, func() {
 			heartbeat.AgentHeartbeat(ip)
 			log.Println("心跳监控执行")
 		})
 	}
 	// Agent 心跳
-	if viper.GetBool("task-monitor-flag.heartbeatFlag") {
+	if viper.GetBool("task-monitor-flag.ipChangeFlag") {
 		ipChangeSpec := viper.GetString("task-monitor-cron.ipChange")
 		_, _ = c.AddFunc(ipChangeSpec, func() {
 			ipUtil.SendIPChange()

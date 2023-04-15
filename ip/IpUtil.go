@@ -119,15 +119,25 @@ func SendIPChange() {
 
 	ddnsIP, _ := GetDdnsIP()
 
-	var message = "【家庭路由器的公网IP监控】\n 出口公网IP:" + remoteUrlIP + "\n入口公网IP:" + ddnsIP
+	var atMobiles []string
+	for _, tmp := range strings.Split(viper.GetString("ding-talk.atMobiles"), ";") {
+		atMobiles = append(atMobiles, strings.TrimSpace(tmp))
+	}
+
+	var message = "【家庭路由器的公网IP监控】\n 出口公网IP:【" + remoteUrlIP + "】\n入口公网IP:【" + ddnsIP + "】"
 	if remoteUrlIP != ddnsIP {
-		message = "【家庭路由器的公网IP获取失败】-请检查是否公网\n" + "路由器IP:" + ddnsIP + "\n 外网IP: " + remoteUrlIP
+		message = "【家庭路由器的公网IP获取失败】-请检查是否公网\n" + "路由器IP:【" + ddnsIP + "】\n 外网IP:【" + remoteUrlIP + "】"
 	}
 
 	po := Gitea{Text: struct {
 		//Subject string `json:"subject"`
 		Content string `json:"content"`
-	}{Content: message}}
+	}{Content: message},
+		At: struct {
+			AtMobiles interface{} `json:"atMobiles"`
+			IsAtAll   bool        `json:"isAtAll"`
+		}{AtMobiles: atMobiles},
+	}
 
 	po.Msgtype = "text"
 
@@ -139,11 +149,18 @@ func SendIPChange() {
 	if lastIp != remoteUrlIP {
 		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 100000}
 		util.SetCache(ipCache)
-		var msg = "【家庭路由器的公网IP发生变化】\n由IP:" + lastIp + "\n变化为IP:" + remoteUrlIP
-		po := Gitea{Text: struct {
-			//Subject string `json:"subject"`
-			Content string `json:"content"`
-		}{Content: msg}}
+		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
+
+		po := Gitea{
+			Text: struct {
+				//Subject string `json:"subject"`
+				Content string `json:"content"`
+			}{Content: msg},
+			At: struct {
+				AtMobiles interface{} `json:"atMobiles"`
+				IsAtAll   bool        `json:"isAtAll"`
+			}{AtMobiles: viper.GetString("ding-talk.atMobiles")},
+		}
 
 		po.Msgtype = "text"
 
