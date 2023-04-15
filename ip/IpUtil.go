@@ -218,8 +218,15 @@ func SendIPChange() {
 	lastIp, _ := util.GetCache(cacheKey)
 
 	remoteUrlIP := GetRemoteUrlIP()
+
+	if len(lastIp) < 1 && len(remoteUrlIP) > 1 {
+		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
+		util.SetCache(ipCache)
+		return
+	}
+
 	if lastIp != remoteUrlIP {
-		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 100000}
+		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
 		util.SetCache(ipCache)
 		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
 
