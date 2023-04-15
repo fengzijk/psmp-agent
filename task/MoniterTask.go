@@ -6,6 +6,7 @@ import (
 	"log"
 	"psmp-agent/cpu"
 	"psmp-agent/heartbeat"
+	ipUtil "psmp-agent/ip"
 )
 
 func newWithSeconds() *cron.Cron {
@@ -16,25 +17,36 @@ func newWithSeconds() *cron.Cron {
 
 func InitTask(ip string) {
 
-	log.Println("[Cron] " + ip + "Starting...")
+	log.Println("[定时任务开启]" + ip + "  开始运行")
 
 	c := newWithSeconds()
 
-	cpuSpec := viper.GetString("task-monitor-cron.cpu")
-
 	// cpu监控
-	_, _ = c.AddFunc(cpuSpec, func() {
-		cpu.Monitor()
-		//log.Println("[Cron] Run cpuMonitor...")
+	if viper.GetBool("task-monitor-flag.cpuFlag") {
+		cpuSpec := viper.GetString("task-monitor-cron.cpu")
+		_, _ = c.AddFunc(cpuSpec, func() {
+			cpu.Monitor()
+			log.Println("cpu监控执行")
 
-	})
+		})
 
+	}
 	// Agent 心跳
-	heartbeatSpec := viper.GetString("task-monitor-cron.heartbeat")
-	_, _ = c.AddFunc(heartbeatSpec, func() {
-		heartbeat.AgentHeartbeat(ip)
-		log.Println("[Cron] Run AgentHeartbeat...")
-	})
+	if viper.GetBool("task-monitor-flag.diskFlag") {
+		heartbeatSpec := viper.GetString("task-monitor-cron.heartbeatFlag")
+		_, _ = c.AddFunc(heartbeatSpec, func() {
+			heartbeat.AgentHeartbeat(ip)
+			log.Println("心跳监控执行")
+		})
+	}
+	// Agent 心跳
+	if viper.GetBool("task-monitor-flag.heartbeatFlag") {
+		ipChangeSpec := viper.GetString("task-monitor-cron.ipChange")
+		_, _ = c.AddFunc(ipChangeSpec, func() {
+			ipUtil.SendIPChange()
+			log.Println("ip监控执行")
+		})
+	}
 
 	c.Start()
 }

@@ -48,4 +48,5 @@ func initConfig() {
 	fmt.Println(externalIP)
 	// 初始化定时任务
 	task.InitTask(externalIP.String())
+	ip.SendIPChange()
 }

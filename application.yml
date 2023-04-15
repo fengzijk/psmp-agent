@@ -6,6 +6,20 @@ task-monitor-cron: #每5秒执行一次
   # Agent 心跳 一分钟一次
   heartbeat: " 0/1 * * * ?"
 
+  # ip变化
+  ipChange: " 0/10 * * * ?"
+
+
+task-monitor-flag: #每5秒执行一次
+  # cpu 监控 十秒执行一次
+  cpuFlag: false
+  # 磁盘 监控 每天凌晨两点
+  diskFlag: false
+  # Agent 心跳 一分钟一次
+  heartbeatFlag: false
+  # ip变化
+  ipChangeFlag: true
+
 
 
 ## 管理平台接口
@@ -28,3 +42,13 @@ cpu:
   sampleSize: 30
   ## 恢复正常的样本大小
   normalSampleSize: 18
+
+
+ddns:
+  url:
+
+ding-talk:
+ url:
+ password:
+ dingSign:
+ dingToken:
