@@ -5,8 +5,6 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"psmp-agent/config"
-	"psmp-agent/heartbeat"
-	"psmp-agent/ip"
 	"psmp-agent/task"
 	"psmp-agent/util"
 )
@@ -41,12 +39,9 @@ func initConfig() {
 	// cpu配置
 
 	config.InitConfig()
-	// 心跳配置
-	heartbeat.InitConf()
-
-	externalIP, _ := ip.ExternalIP()
+	externalIP, _ := util.ExternalIP()
 	fmt.Println(externalIP)
 	// 初始化定时任务
 	task.InitTask(externalIP.String())
-	ip.SendIPChange()
+	util.SendIPChange()
 }

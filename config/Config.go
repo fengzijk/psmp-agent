@@ -18,18 +18,7 @@ const (
 	MonitorServerDiskAlarmPre = "server:disk:alarm_pre:"
 )
 
-type SendEmailRequest struct {
-	// binding:"required"修饰的字段，若接收为空值，则报错，是必须字段
-	FromName string `form:"fromName" json:"fromName"`
-	ToUser   string `form:"ToUser" json:"toUser" `
-	CcUser   string `form:"emailTo" json:"ccUser" `
-	Subject  string `form:"subject" json:"subject" `
-	Body     string `form:"content" json:"content" `
-}
-
 var (
-	EmailUrl string
-
 	CpuSampleSize int
 
 	CpuOverloadThreshold int
@@ -48,17 +37,12 @@ var (
 )
 
 func InitConfig() {
-
 	CpuSampleSize = viper.GetInt("cpu.sampleSize")
 	CpuOverloadThreshold = viper.GetInt("cpu.overloadThreshold")
 	CpuFrequencySeconds = viper.GetInt("frequencySeconds")
 	CpuNormalSampleSize = viper.GetInt("cpu.normalSampleSize")
-
 	DiskSampleSize = viper.GetInt("disk.sampleSize")
 	DiskOverloadThreshold = viper.GetInt("disk.overloadThreshold")
 	DiskFrequencySeconds = viper.GetInt("frequencySeconds")
 	DiskNormalSampleSize = viper.GetInt("disk.normalSampleSize")
-
-	EmailUrl = viper.GetString("psmp.url") + viper.GetString("psmp.send-email-api")
-
 }

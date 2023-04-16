@@ -26,16 +26,6 @@ task-monitor-flag: #每5秒执行一次
 
 
 
-## 管理平台接口
-psmp:
-  url : http://127.0.0.1:8080
-  heartbeat-api: /open/agent/heartbeat/%s/%s
-  send-email-api: /email/%s/save
-  app-check-url:
-    -
-    -
-
-
 ## 告警间隔秒 在此期间告警一次
 frequencySeconds: 7200
 
@@ -51,9 +41,24 @@ cpu:
 ddns:
   url:
 
-ding-talk:
+
+ding-talk-webhook:
  url:
  password:
  dingSign:
  dingToken:
  atMobiles:
+
+
+weixin-webhook:
+  url:
+  password:
+  weixinToken:
+  atMobiles:
+
+
+
+email-webhook:
+  url:
+  password:
+  toUser:

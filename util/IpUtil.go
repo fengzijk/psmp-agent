@@ -1,7 +1,6 @@
-package ip
+package util
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/miekg/dns"
@@ -10,44 +9,10 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"psmp-agent/util"
 	"strings"
 )
 
 const ipCacheShortKey = "ip_cache"
-
-type Gitea struct {
-	ActionCard struct {
-		BtnOrientation string      `json:"btnOrientation"`
-		Btns           interface{} `json:"btns"`
-		HideAvatar     string      `json:"hideAvatar"`
-		SingleTitle    string      `json:"singleTitle"`
-		SingleURL      string      `json:"singleURL"`
-		Text           string      `json:"text"`
-		Title          string      `json:"title"`
-	} `json:"actionCard"`
-	At struct {
-		AtMobiles interface{} `json:"atMobiles"`
-		IsAtAll   bool        `json:"isAtAll"`
-	} `json:"at"`
-	FeedCard struct {
-		Links interface{} `json:"links"`
-	} `json:"feedCard"`
-	Link struct {
-		MessageURL string `json:"messageUrl"`
-		PicURL     string `json:"picUrl"`
-		Text       string `json:"text"`
-		Title      string `json:"title"`
-	} `json:"link"`
-	Markdown struct {
-		Text  string `json:"text"`
-		Title string `json:"title"`
-	} `json:"markdown"`
-	Msgtype string `json:"msgtype"`
-	Text    struct {
-		Content string `json:"content"`
-	} `json:"text"`
-}
 
 func ExternalIP() (net.IP, error) {
 	ifaces, err := net.Interfaces()
@@ -115,7 +80,7 @@ func SendIPAlarm() {
 	ddnsIP, _ := GetDdnsIP()
 
 	var atMobiles []string
-	for _, tmp := range strings.Split(viper.GetString("ding-talk.atMobiles"), ";") {
+	for _, tmp := range strings.Split(viper.GetString("ding-talk-webhook.atMobiles"), ";") {
 		atMobiles = append(atMobiles, strings.TrimSpace(tmp))
 	}
 
@@ -124,22 +89,7 @@ func SendIPAlarm() {
 		message = "【家庭路由器的公网IP获取失败】-请检查是否公网\n" + "路由器IP:【" + ddnsIP + "】\n 外网IP:【" + remoteUrlIP + "】"
 	}
 
-	po := Gitea{Text: struct {
-		//Subject string `json:"subject"`
-		Content string `json:"content"`
-	}{Content: message},
-		At: struct {
-			AtMobiles interface{} `json:"atMobiles"`
-			IsAtAll   bool        `json:"isAtAll"`
-		}{AtMobiles: atMobiles},
-	}
-
-	po.Msgtype = "text"
-
-	messageJson, _ := json.Marshal(po)
-	dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk.url"), viper.GetString("ding-talk.password"),
-		viper.GetString("ding-talk.dingSign"), viper.GetString("ding-talk.dingToken"))
-	util.PostJson(dingTalkUrl, string(messageJson), "")
+	NotifyDingTalkWebhook(message, atMobiles)
 
 }
 
@@ -195,7 +145,6 @@ func GetDdnsIP() (string, error) {
 		return "", errors.New("获取域名dns地址失败")
 	}
 	if len(in.Answer) < 1 { //判断是否有响应内容,如果没有则输出没有记录并退出
-		fmt.Println("No records")
 		return "", errors.New("获取域名dns地址失败")
 	}
 
@@ -213,47 +162,27 @@ func GetDdnsIP() (string, error) {
 func SendIPChange() {
 
 	var atMobiles []string
-	for _, tmp := range strings.Split(viper.GetString("ding-talk.atMobiles"), ";") {
+	for _, tmp := range strings.Split(viper.GetString("ding-talk-webhook.atMobiles"), ";") {
 		atMobiles = append(atMobiles, strings.TrimSpace(tmp))
 	}
 	cacheKey := ipCacheShortKey
 
 	// 缓存中查
-	lastIp, _ := util.GetCache(cacheKey)
+	lastIp, _ := GetCache(cacheKey)
 
 	remoteUrlIP := GetRemoteUrlIP()
 
 	if len(lastIp) < 1 && len(remoteUrlIP) > 1 {
-		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
-		util.SetCache(ipCache)
+		ipCache := CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
+		SetCache(ipCache)
 		return
 	}
 
 	if lastIp != remoteUrlIP {
-		ipCache := util.CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
-		util.SetCache(ipCache)
+		ipCache := CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
+		SetCache(ipCache)
 		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
-
-		po := Gitea{
-			Text: struct {
-				//Subject string `json:"subject"`
-				Content string `json:"content"`
-			}{Content: msg},
-			At: struct {
-				AtMobiles interface{} `json:"atMobiles"`
-				IsAtAll   bool        `json:"isAtAll"`
-			}{AtMobiles: atMobiles},
-		}
-
-		po.Msgtype = "text"
-
-		messageJson, _ := json.Marshal(po)
-		dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk.url"), viper.GetString("ding-talk.password"),
-			viper.GetString("ding-talk.dingSign"), viper.GetString("ding-talk.dingToken"))
-		_, err := util.PostJson(dingTalkUrl, string(messageJson), "")
-		if err != nil {
-			return
-		}
+		NotifyDingTalkWebhook(msg, atMobiles)
 
 	}
 }

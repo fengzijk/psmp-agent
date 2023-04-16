@@ -5,8 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"psmp-agent/cpu"
-	"psmp-agent/heartbeat"
-	ipUtil "psmp-agent/ip"
+	"psmp-agent/util"
 )
 
 func newWithSeconds() *cron.Cron {
@@ -35,7 +34,7 @@ func InitTask(ip string) {
 	if viper.GetBool("task-monitor-flag.heartbeatFlag") {
 		heartbeatSpec := viper.GetString("task-monitor-cron.heartbeat")
 		_, _ = c.AddFunc(heartbeatSpec, func() {
-			heartbeat.AgentHeartbeat(ip)
+			util.NotifyHeartbeat("【心跳监控执行】", "", "", "【心跳监控执行:", ip+"  AGENT正常】")
 			log.Println("心跳监控执行")
 		})
 	}
@@ -43,7 +42,7 @@ func InitTask(ip string) {
 	if viper.GetBool("task-monitor-flag.ipAlarmFlag") {
 		ipAlarmSpec := viper.GetString("task-monitor-cron.ipAlarm")
 		_, _ = c.AddFunc(ipAlarmSpec, func() {
-			ipUtil.SendIPAlarm()
+			util.SendIPAlarm()
 			log.Println("ip告警执行")
 		})
 	}
@@ -51,7 +50,7 @@ func InitTask(ip string) {
 	if viper.GetBool("task-monitor-flag.ipChangeFlag") {
 		ipChangeSpec := viper.GetString("task-monitor-cron.ipChange")
 		_, _ = c.AddFunc(ipChangeSpec, func() {
-			ipUtil.SendIPChange()
+			util.SendIPChange()
 			log.Println("ip变化执行")
 		})
 	}

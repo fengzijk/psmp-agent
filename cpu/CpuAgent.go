@@ -2,10 +2,8 @@ package cpu
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"psmp-agent/config"
-	"psmp-agent/ip"
 	"psmp-agent/util"
 )
 
@@ -16,7 +14,7 @@ func Monitor() {
 
 	var cacheCpuList []float64
 
-	externalIP, _ := ip.ExternalIP()
+	externalIP, _ := util.ExternalIP()
 
 	// 样本缓存key
 	sampleKey := config.MonitorServerCpuSample + externalIP.String()
@@ -69,15 +67,6 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 		}
 
 		if float32(overloadCount) >= (float32(listMax) * 0.8) {
-			// 发送告警邮件
-			log.Print("发送邮件------------------------")
-			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu 过载 大于80%"}
-			emailJson, _ := json.Marshal(email)
-
-			_, err := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
-			if err != nil {
-				return
-			}
 
 			// 告警缓存，frequency秒后失效，在此期间不会重复告警
 			alarmCache := util.CacheModel{Key: alarmKey, Value: "1", ExpireSeconds: config.CpuFrequencySeconds}
@@ -90,6 +79,8 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 			// 存入本地List缓存
 			sampleCache := util.CacheModel{Key: sampleKey, Value: string(doctorJson), ExpireSeconds: 100000}
 			util.SetCache(sampleCache)
+			// 发送告警邮件
+			util.NotifyEmailWebhook("psmp-agent", "", "", "CPU过载告警", ip+":CPU过载大于80%")
 			return
 		}
 
@@ -119,13 +110,8 @@ func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey 
 
 		if overloadCount < 5 {
 			// 发送邮件通知
+			util.NotifyEmailWebhook("psmp-agent", "", "", "CPU恢复正常", ip+":CPU恢复正常")
 
-			log.Print("发送邮件------------------------")
-
-			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu恢复正常"}
-			emailJson, _ := json.Marshal(email)
-
-			_, _ = util.PostJson(getEmailApi("cpu"), string(emailJson), "")
 			// 已恢复告警标记
 			preAlarmCache := util.CacheModel{Key: preAlarmKey, Value: "0", ExpireSeconds: 100000}
 			util.SetCache(preAlarmCache)
@@ -138,8 +124,4 @@ func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey 
 	sampleCache := util.CacheModel{Key: sampleKey, Value: string(doctorJson), ExpireSeconds: 100000}
 	util.SetCache(sampleCache)
 
-}
-
-func getEmailApi(t string) string {
-	return fmt.Sprintf(config.EmailUrl, t)
 }
