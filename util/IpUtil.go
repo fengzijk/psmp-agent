@@ -179,12 +179,10 @@ func SendIPChange() {
 		return
 	}
 
-	if lastIp != remoteUrlIP {
-		ipCache := CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
-		SetCache(ipCache)
-		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
-		NotifyDingTalkWebhook(msg, atMobiles)
-		NotifyWeixinWebhook(msg, atMobiles)
-		NotifyEmailWebhook("【群晖】", "", "", "【家庭路由器的公网IP发生变化】", msg)
-	}
+	ipCache := CacheModel{Key: cacheKey, Value: remoteUrlIP, ExpireSeconds: 60 * 60 * 4}
+	SetCache(ipCache)
+	var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
+	NotifyDingTalkWebhook(msg, atMobiles)
+	NotifyWeixinWebhook(msg, atMobiles)
+	NotifyEmailWebhook("【群晖】", "", "", "【家庭路由器的公网IP发生变化】", msg)
 }

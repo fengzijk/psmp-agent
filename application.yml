@@ -4,7 +4,7 @@ task-monitor-cron: #每5秒执行一次
   # 磁盘 监控 每天凌晨两点
   disk: "0 0 2 * * ?"
   # Agent 心跳 一分钟一次
-  heartbeat: " 0/1 * * * ?"
+  heartbeat: " 0/50 * * * ?"
 
   #ip变化
   ipChange: "*/10 * * * * *"

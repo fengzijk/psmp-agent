@@ -76,7 +76,7 @@ func NotifyDingTalkWebhook(msg string, atMobiles []string) {
 	po.Msgtype = "text"
 
 	messageJson, _ := json.Marshal(po)
-	dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk-webhook-webhook.url"), viper.GetString("ding-talk-webhook.password"),
+	dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk-webhook.url"), viper.GetString("ding-talk-webhook.password"),
 		viper.GetString("ding-talk-webhook.dingSign"), viper.GetString("ding-talk-webhook.dingToken"))
 	_, _ = PostJson(dingTalkUrl, string(messageJson), "")
 
@@ -121,6 +121,12 @@ func NotifyEmailWebhook(fromName, toUser, ccUser, subject, content string) {
 }
 
 func NotifyHeartbeat(fromName, toUser, ccUser, subject, content string) {
+
+	cache, _ := GetCache("NotifyHeartbeat")
+
+	if len(cache) > 1 {
+		return
+	}
 
 	if len(toUser) < 1 {
 		toUser = viper.GetString("email-webhook.toUser")
