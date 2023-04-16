@@ -90,7 +90,8 @@ func SendIPAlarm() {
 	}
 
 	NotifyDingTalkWebhook(message, atMobiles)
-
+	NotifyWeixinWebhook(message, atMobiles)
+	NotifyEmailWebhook("【群晖】", "", "", "家庭路由器的公网IP监控】", message)
 }
 
 func GetPublicIP() string {
@@ -183,6 +184,7 @@ func SendIPChange() {
 		SetCache(ipCache)
 		var msg = "【家庭路由器的公网IP发生变化】\n由IP:【" + lastIp + "】\n变化为IP:【" + remoteUrlIP + "】"
 		NotifyDingTalkWebhook(msg, atMobiles)
-
+		NotifyWeixinWebhook(msg, atMobiles)
+		NotifyEmailWebhook("【群晖】", "", "", "【家庭路由器的公网IP发生变化】", msg)
 	}
 }
