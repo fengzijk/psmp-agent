@@ -2,7 +2,6 @@ package cpu
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"psmp-agent/config"
 	"psmp-agent/ip"
@@ -74,9 +73,10 @@ func diskOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAla
 			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":disk 过载 大于80%"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(getEmailApi("disk"), string(emailJson), "")
-			fmt.Println(postJson)
-			//
+			_, err := util.PostJson(getEmailApi("disk"), string(emailJson), "")
+			if err != nil {
+				return
+			}
 
 			// 告警缓存，frequency秒后失效，在此期间不会重复告警
 			alarmCache := util.CacheModel{Key: alarmKey, Value: "1", ExpireSeconds: config.DiskFrequencySeconds}
@@ -124,8 +124,11 @@ func diskRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey
 			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":磁盘恢复正常"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(getEmailApi("disk"), string(emailJson), "")
-			fmt.Println(postJson)
+			_, err := util.PostJson(getEmailApi("disk"), string(emailJson), "")
+			if err != nil {
+				return
+			}
+
 			// 已恢复告警标记
 			preAlarmCache := util.CacheModel{Key: preAlarmKey, Value: "0", ExpireSeconds: 100000}
 			util.SetCache(preAlarmCache)

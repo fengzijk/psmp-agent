@@ -74,9 +74,10 @@ func cpuOverloadAlarm(cacheCpuList []float64, listMax int, ip, alarmKey, preAlar
 			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu 过载 大于80%"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
-			fmt.Println(postJson)
-			//
+			_, err := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
+			if err != nil {
+				return
+			}
 
 			// 告警缓存，frequency秒后失效，在此期间不会重复告警
 			alarmCache := util.CacheModel{Key: alarmKey, Value: "1", ExpireSeconds: config.CpuFrequencySeconds}
@@ -124,8 +125,7 @@ func cpuRecoveryNotification(cacheCpuList []float64, ip, preAlarmKey, sampleKey 
 			var email = config.SendEmailRequest{FromName: "psmp-agent", Subject: "CPU过载告警", Body: ip + ":cpu恢复正常"}
 			emailJson, _ := json.Marshal(email)
 
-			postJson := util.PostJson(getEmailApi("cpu"), string(emailJson), "")
-			fmt.Println(postJson)
+			_, _ = util.PostJson(getEmailApi("cpu"), string(emailJson), "")
 			// 已恢复告警标记
 			preAlarmCache := util.CacheModel{Key: preAlarmKey, Value: "0", ExpireSeconds: 100000}
 			util.SetCache(preAlarmCache)

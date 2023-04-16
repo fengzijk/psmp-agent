@@ -212,6 +212,10 @@ func GetDdnsIP() (string, error) {
 
 func SendIPChange() {
 
+	var atMobiles []string
+	for _, tmp := range strings.Split(viper.GetString("ding-talk.atMobiles"), ";") {
+		atMobiles = append(atMobiles, strings.TrimSpace(tmp))
+	}
 	cacheKey := ipCacheShortKey
 
 	// 缓存中查
@@ -238,7 +242,7 @@ func SendIPChange() {
 			At: struct {
 				AtMobiles interface{} `json:"atMobiles"`
 				IsAtAll   bool        `json:"isAtAll"`
-			}{AtMobiles: viper.GetString("ding-talk.atMobiles")},
+			}{AtMobiles: atMobiles},
 		}
 
 		po.Msgtype = "text"
@@ -246,7 +250,10 @@ func SendIPChange() {
 		messageJson, _ := json.Marshal(po)
 		dingTalkUrl := fmt.Sprintf("%s?password=%s&dingSign=%s&dingToken=%s", viper.GetString("ding-talk.url"), viper.GetString("ding-talk.password"),
 			viper.GetString("ding-talk.dingSign"), viper.GetString("ding-talk.dingToken"))
-		util.PostJson(dingTalkUrl, string(messageJson), "")
+		_, err := util.PostJson(dingTalkUrl, string(messageJson), "")
+		if err != nil {
+			return
+		}
 
 	}
 }
